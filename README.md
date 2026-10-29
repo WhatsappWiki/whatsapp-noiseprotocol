@@ -1,6 +1,6 @@
 ## Telegram Contact: [@ttjjda](https://t.me/ttjjda)
 
-noiseprotocol-whatsapp
+whatsapp-noiseprotocol
 ======================
 [![Upstream CI](https://circleci.com/gh/plizonczyk/noiseprotocol.svg?style=svg)](https://circleci.com/gh/plizonczyk/noiseprotocol)
 [![Upstream PyPI](https://img.shields.io/pypi/v/noiseprotocol.svg)](https://pypi.python.org/pypi/noiseprotocol)

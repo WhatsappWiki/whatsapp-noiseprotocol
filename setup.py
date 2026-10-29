@@ -13,7 +13,7 @@ setup(
     description='WhatsApp Noise handshakes for Python: XX, IK and ML-KEM-512 fallback',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/WhatsappWiki/noiseprotocol-whatsapp',
+    url='https://github.com/WhatsappWiki/whatsapp-noiseprotocol',
     project_urls={'Upstream': 'https://github.com/plizonczyk/noiseprotocol'},
     author='Piotr Lizonczyk',
     author_email='plizonczyk.public@gmail.com',
