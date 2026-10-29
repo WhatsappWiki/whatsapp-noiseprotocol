@@ -11,17 +11,40 @@ class NoiseProtocol(object):
     """
     TODO: Document
     """
-    def __init__(self, protocol_name: bytes, backend: 'NoiseBackend'):
+    def __init__(self, protocol_name: bytes, backend: 'NoiseBackend', whatsapp_compat=False, *, whatsapp_kem_profile=False):
+        # Explicit APK-specific profile; the default remains standard Noise.
+        self.whatsapp_compat = bool(whatsapp_compat)
+        kem_profiles = (
+            b'Noise_IKkem-FS+X25519+MLKEM512+AESGCM256+SHA256',
+            b'Noise_XXkem-FSfallback_25519_MLKEM512_AESGCM_SHA256',
+        )
+        if whatsapp_kem_profile and (not self.whatsapp_compat or protocol_name not in kem_profiles):
+            raise NoiseProtocolNameError('Unsupported explicit WhatsApp KEM symmetric-state profile')
+        if self.whatsapp_compat and not whatsapp_kem_profile and protocol_name not in (
+            b'Noise_XX_25519_AESGCM_SHA256',
+            b'Noise_IK_25519_AESGCM_SHA256',
+            b'Noise_XXfallback_25519_AESGCM_SHA256',
+        ):
+            raise NoiseProtocolNameError('WhatsApp compatibility supports classical XX/IK/XXfallback only')
         self.name = protocol_name
         self.backend = backend
-        unpacked_name = UnpackedName.from_protocol_name(self.name)
+        # The KEM adapter drives SymmetricState explicitly. Only primitive
+        # lookup uses the classical alias; self.name remains the exact APK
+        # transcript name, and the generic HandshakeState API cannot opt in.
+        primitive_name = (b'Noise_IK_25519_AESGCM_SHA256' if protocol_name == kem_profiles[0]
+                          else b'Noise_XX_25519_AESGCM_SHA256') if whatsapp_kem_profile else self.name
+        unpacked_name = UnpackedName.from_protocol_name(primitive_name)
         mappings = self.backend.map_protocol_name_to_crypto(unpacked_name)
 
         # A valid Pattern instance (see Section 7 of specification (rev 32))
         self.pattern = mappings['pattern']()
         self.pattern_modifiers = unpacked_name.pattern_modifiers
         if self.pattern_modifiers:
-            self.pattern.apply_pattern_modifiers(self.pattern_modifiers)
+            # APK XXfallback retains client/server roles, initializes a fresh
+            # named transcript, then hashes the already-sent client ephemeral.
+            # The caller consumes the first XX write without sending it again.
+            if not (self.whatsapp_compat and self.pattern_modifiers == ['fallback']):
+                self.pattern.apply_pattern_modifiers(self.pattern_modifiers)
 
         # Handle PSK handshake options
         self.psks = None

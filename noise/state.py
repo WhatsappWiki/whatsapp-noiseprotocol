@@ -17,6 +17,7 @@ class CipherState(object):
         self.k = Empty()
         self.n = None
         self.cipher = noise_protocol.cipher_class()
+        self.whatsapp_compat = noise_protocol.whatsapp_compat
 
     def initialize_key(self, key):
         """
@@ -71,6 +72,11 @@ class CipherState(object):
         if not self.has_key():
             return ciphertext
 
+        if getattr(self, 'whatsapp_compat', False):
+            # APK C1lR.A04 consumes the nonce before attempting authentication.
+            nonce = self.n
+            self.n = self.n + 1
+            return self.cipher.decrypt(self.k, nonce, ad, ciphertext)
         plaintext = self.cipher.decrypt(self.k, self.n, ad, ciphertext)
         self.n = self.n + 1
         return plaintext
@@ -169,6 +175,9 @@ class SymmetricState(object):
         :param plaintext: bytes sequence
         :return: ciphertext bytes sequence
         """
+        if self.noise_protocol.whatsapp_compat and not plaintext and not self.cipher_state.has_key():
+            # APK ClientHello contains e only; no extra MixHash(empty).
+            return plaintext
         ciphertext = self.cipher_state.encrypt_with_ad(self.h, plaintext)
         self.mix_hash(ciphertext)
         return ciphertext
@@ -181,6 +190,8 @@ class SymmetricState(object):
         :param ciphertext: bytes sequence
         :return: plaintext bytes sequence
         """
+        if self.noise_protocol.whatsapp_compat and not ciphertext and not self.cipher_state.has_key():
+            return ciphertext
         plaintext = self.cipher_state.decrypt_with_ad(self.h, ciphertext)
         self.mix_hash(ciphertext)
         return plaintext

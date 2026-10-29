@@ -70,3 +70,9 @@ target/
 .python-version
 
 .idea/
+
+# Local WhatsApp account inputs and decrypted CLI output
+/private/
+/.venv/
+/*.raw
+/*.bin

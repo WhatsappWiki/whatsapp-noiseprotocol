@@ -4,19 +4,17 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
-try:
-    import pypandoc
-    with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-        long_description = pypandoc.convert('README.md', 'rst')
-except (IOError, ImportError):
-    long_description = 'Check https://github.com/plizonczyk/noiseprotocol for readme.'
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
     name='noiseprotocol',
     version='0.3.1',
-    description='Implementation of Noise Protocol Framework',
+    description='WhatsApp Noise handshakes for Python: XX, IK and ML-KEM-512 fallback',
     long_description=long_description,
-    url='https://github.com/plizonczyk/noiseprotocol',
+    long_description_content_type='text/markdown',
+    url='https://github.com/WhatsappWiki/noiseprotocol-whatsapp',
+    project_urls={'Upstream': 'https://github.com/plizonczyk/noiseprotocol'},
     author='Piotr Lizonczyk',
     author_email='plizonczyk.public@gmail.com',
     license='MIT',
@@ -34,8 +32,13 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux'
     ],
-    keywords='cryptography noiseprotocol noise security',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests', 'examples']),
+    keywords='whatsapp noise-protocol noiseprotocol python cryptography handshake x25519 aes-gcm xxfallback ml-kem-512 post-quantum',
+    packages=find_packages(exclude=[
+        'contrib', 'contrib.*', 'docs', 'docs.*',
+        'tests', 'tests.*', 'examples', 'examples.*',
+    ]),
+    py_modules=['whatsapp_fallback'],
     install_requires=['cryptography>=2.8'],
+    extras_require={'whatsapp-pq': ['pqcrypto==0.3.4']},
     python_requires='~=3.5',  # we like 3.5, 3.6, and beyond, but not 4.0
 )
